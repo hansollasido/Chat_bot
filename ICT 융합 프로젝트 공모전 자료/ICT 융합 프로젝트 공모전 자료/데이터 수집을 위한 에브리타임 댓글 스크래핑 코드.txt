@@ -1,0 +1,47 @@
+from selenium import webdriver
+import time
+import pandas as pd
+
+browser = webdriver.Chrome("C:/Users/Bang/Desktop/chat/chromedriver.exe")
+browser.get("https://everytime.kr/385892/p/1")
+
+# 로그인
+browser.find_element_by_xpath("//*[@id='container']/form/p[1]/input").send_keys("ididid")
+browser.find_element_by_xpath("//*[@id='container']/form/p[2]/input").send_keys("password!")
+browser.find_element_by_xpath("//*[@id='container']/form/p[3]/input").click()
+
+browser.implicitly_wait(10)
+f = open("test_data3.csv",'w',encoding = 'utf-8')
+
+page = 1
+while(page<560): 
+    for row in range(1,21):
+            time.sleep(0.1)
+            xp = "//*[@id='container']/div[3]/article[{}]/a/p".format(row)
+            content = browser.find_element_by_xpath(xp)
+            arr=''
+            # 질문 추출
+            if(content.text.find('?')!=-1):
+                # 댓글 개수 이용
+                count =  browser.find_element_by_xpath('//*[@id="container"]/div[3]/article[{}]/a/ul/li[2]'.format(row))
+                c = int(count.text)
+                time.sleep(0.05)
+                con = content.text
+                con = con.replace('\n','')
+                arr = arr + con +'\t'
+                content.click()
+                time.sleep(0.2)
+
+                # 댓글 수집
+                for i in range(1,c+1):
+                    path = "//*[@id='container']/div[3]/article/div/article[{}]/p".format(i)
+                    time.sleep(0.1)
+                    comment =  browser.find_element_by_xpath(path).text
+                    arr = arr + comment+'\t'
+                browser.find_element_by_id("goListButton").click()
+                arr = arr+'\n'
+                f.write(arr)
+    page += 1
+    browser.get('https://everytime.kr/385892/p/{}'.format(page))
+    time.sleep(0.1)
+f.close()

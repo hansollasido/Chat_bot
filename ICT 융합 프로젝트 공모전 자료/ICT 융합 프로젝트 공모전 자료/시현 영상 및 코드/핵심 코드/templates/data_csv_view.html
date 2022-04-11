@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>질문 및 답변</h1>
+{% for article in articles %}
+<p>글 번호: {{ article.pk }}</p>
+<p>글 제목: {{ article.d_a }}</p>
+<p>글 내용: {{ article.d_q }}</p>
+<hr>
+{% endfor%}
+{% endblock  %}

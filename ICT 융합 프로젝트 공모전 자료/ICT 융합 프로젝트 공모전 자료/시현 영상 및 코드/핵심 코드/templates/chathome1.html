@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>아주대 챗봇</title>
+    {% block script %}
+    <script>
+    
+    function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = jQuery.trim(cookies[i]);
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        var csrftoken = getCookie('csrftoken');
+
+        var xhr;
+    function help(){
+        alert("              ---------사용 가이드----------\n\n 1. 공지사항을 원하면 공지사항이라 적어줘! \n\n 2. 학교 건물 위치를 물어 보고 싶으면 OO관 어딨어? 라고 해줘(ex. 남제관 어딨어?) \n\n 3. 학식/교식 메뉴가 궁금해도 물어봐!!\n\n 4. 날씨/ 코로나 확진자수도 대답해줄게\n\n 5. 오늘/어제/그저께 공지사항이라고 하면 그 기간 공지사항 알려 줄게!!\n\n 6. 괄호 안에 단어중 하나를 골라서 \"추천 OOO\"으로 물어봐\n\n(카페,고기집, 삼겹살, 피자, 김치찌개, 짜장면, 떡볶이, 돼지갈비, 부대찌개, 케이크, 브런치, 닭발, 쭈꾸미, 파스타,샌드위치, 칼국수, 스테이크, 감자탕 , 돈가스, 횟집, 한식, 일식, 중국집) ")
+    }
+        
+    function sendAsk(){ 
+        chattext = document.getElementById("chattext").value;
+        if(chattext == ''){
+            document.getElementById("chattext").focus();
+            return false;
+        }
+        addtext = "<div style='margin:30px 0;text-align:right;font-size: 350%;'><span style='padding:3px 10px;background-color:#005BAC;outline-color:#005BAC; border-radius: 2rem;color:#FFFFFF;'>" + chattext + "</span></div>";
+        document.getElementById("chatbox").innerHTML += addtext;
+
+        var mydiv = document.getElementById("chatbox");
+        mydiv.scrollTop = document.getElementById('chatbox').scrollHeight;
+
+        var objDiv = document.getElementById("chatbox");
+        objDiv.scrollTop = objDiv.scrollHeight;
+        document.getElementById("chattext").value = "";
+
+        var strurl = "chatanswer?questext=" + chattext; 
+        xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) {
+                var data = xhr.responseText;
+                var obj = JSON.parse(data);
+                var obj_re = obj.replace(/"/g,"")
+                var obj_checked = obj_re.match(/http/)
+                var obj_checked_notice = obj_re.match("notice_test")
+                var find_word = /[A-Z+a-z+0-9+\`+\~+\@+\#+\$+\%+\^+\&+\*+\(+\)+\-+\=+\++\\+\{+\}+\[+\]+\;+\_+\:+\<+\>+\.+\?+\/+\s]/g;
+                var find_word2 = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/
+
+                if (obj_checked == null && obj_checked_notice == null){
+                    bottext = "<div style='margin:15px 0;text-align:left;font-size: 350%;'> <span style='padding:3px 10px;background-color:#FFA409;outline-color = #005BAC; border-radius: 2rem;color:#000000;'>" + obj_re + "</span></div>";
+                    document.getElementById("chatbox").innerHTML += bottext;
+                
+                }
+                
+                else if (obj_checked != null && obj_checked_notice != null){
+                    
+                    obj_re = obj_re.replace("notice_test","") //여기는 찾아서 링크랑 내용 주는거
+                    var obj_split = obj_re.split(',')
+                    for(i=0;i<obj_split.length;i++){
+
+                        if(obj_split[i].match(find_word2) != null){
+                            bottext = "<div style='margin:15px 0;text-align:left;font-size: 150%;'> <span style='padding:3px 10px;background-color:#FFA409;outline-color = #005BAC; border-radius: 2rem;color:#000000;'>" + obj_split[i] + "</span></div>";
+                            document.getElementById("chatbox").innerHTML += bottext;
+                        }
+                        else if(obj_split[i].match(find_word2) == null && i>0 &&obj_split[i].match(/http/)!= null){
+                            obj_split[i] = obj_split[i].replace("]","")
+                            var sent1 = "<div style='margin:15px 0;text-align:left;font-size: 150%;'> <span style='padding:3px 10px;background-color:#f0b379;outline-color = #005BAC; border-radius: 2rem;color:#000000;'>" + "여기 누르면 이동해!" + "</span></div>";
+                            var test1 = sent1.link((obj_split[i])) 
+                            document.getElementById("chatbox").innerHTML += test1;
+
+                            bottext = "<div style='margin:15px 0;text-align:left;font-size: 150%;'> <span style='padding:3px 10px;background-color:#BB;outline-color = #005BAC; border-radius: 2rem;color:#000000;'></span></div>";
+                            document.getElementById("chatbox").innerHTML += bottext;
+                        }
+                    }
+                    
+                }
+
+                
+
+                else{
+                    
+                    var obj_find = obj_re.match(find_word)
+                    var obj_join = obj_find.join()
+                    var obj_fixed = obj_join.replace(/,/g,"")
+                    // var URL_remove = obj_re.replace(find_word,'.')
+                    bottext = "<div style='margin:15px 0;text-align:left;font-size: 350%;'> <span style='padding:3px 10px;background-color:#FFA409;outline-color = #005BAC; border-radius: 2rem;color:#000000;'>" + obj_re + "</span></div>";
+                    document.getElementById("chatbox").innerHTML += bottext;
+                    
+                    var sent = "<div style='margin:15px 0;text-align:left;font-size: 350%;'> <span style='padding:3px 10px;background-color:#FFA409;outline-color = #005BAC; border-radius: 2rem;color:#FFFFFF;'>" + "여기 누르면 이동해!" + "</span></div>";
+                    var test = sent.link((obj_fixed)) 
+                    document.getElementById("chatbox").innerHTML += test;
+                    
+                    
+                }
+            }
+            var objDiv = document.getElementById("chatbox");
+            objDiv.scrollTop = objDiv.scrollHeight;
+        };
+        xhr.open("GET", strurl);
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        xhr.send(null);
+
+    }
+    
+
+    </script>
+    {% endblock %}
+    <!--send 버튼 누르면 작동되는 곳-->
+    {% block styles %}
+    <style>
+        .chatheader {
+            position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding:10px 0;
+        background-color:#005BAC;
+        color: #000;
+        text-align:center;
+        }
+        .chatfooter {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            padding: 20px 0;
+            background-color:#FFF;
+            color: rgb(88, 58, 58);
+            text-align: center;
+        }
+
+    </style>
+    {% endblock %}
+</head>
+
+<body style="height:100%;background-color: #DDD;">
+
+
+    <div class="chatheader">
+        <table width ="100%">
+            <tr>
+                <td width="15%"></td>
+                <td>  <img src="https://i.ibb.co/svPj5mx/123.png" alt="123" border="0">
+
+
+
+
+</td>
+
+                <td width="70%" align="left" style="color:white; font-family:arial; font-size: 350%;">　　아주대 정보 챗봇 </td>
+                <td width ="15%" align="left" style="color:white; font-family:arial; font-size: 350%;" onclick="help()" id="helpbtn">?</button></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <div id="chatbox" style=height:1500px;margin-top:200px;padding:20px;font-size:100%;background-color:#BB;overflow-y:scroll;overflow-x:hiddenl;word-wrap:break-word;max-height:100vh;"></div>
+    <div class="chatfooter">
+        <table width="100%">
+            <tr>
+            <td width="80%">
+                <input id="chattext" placeholder=" 내용을 입력하세요." style="padding:20px 0;width:100%;font-size: 350%;border:solid 0px #FFF;">
+                
+            </td>
+            <td width="20%"><button style="padding:20px 0;width:70%;background:#1e5496;color:white;border:solid 0px #FFF;border-radius:5px 5px 5px 5px;font-size: 350%;" onclick="sendAsk()" id="sendbtn">전송</button></td>
+            </tr>
+        </table>
+    </div>
+
+
+</body>
+</html>
+
+
+<script>
+
+    var input = document.getElementById("chattext");
+    
+    input.addEventListener("keyup", function(event) {
+        if (event.keyCode === 13) {
+        document.getElementById("sendbtn").click();
+        }
+    });
+    
+    </script>
