@@ -1,6 +1,8 @@
 # Chat_bot
 ICT 융합 공모전을 위해 Chat_Bot을 만들어 보았습니다.
 
+![image](https://user-images.githubusercontent.com/101409953/235354368-c1562be3-c73b-42ee-917c-be4ff2a19d26.png)
+
 
 ## 과정 및 
 
